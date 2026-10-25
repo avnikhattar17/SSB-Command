@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { ExternalLink, FileText, X } from 'lucide-react';
 
 const personalNotes = [
-  { title: 'SSB Complete Guide', file: 'ssb-complete-guide.pdf', pages: 153, label: 'SSB preparation' },
-  { title: 'Current Affairs', file: 'current-affairs.pdf', pages: 190, label: 'Current affairs' },
-  { title: 'My Personal Prep', file: 'my-personal-prep.pdf', pages: 160, label: 'Personal preparation' },
+  { title: 'SSB Complete Guide', file: 'ssb-complete-guide_compressed.pdf', pages: 153, label: 'SSB preparation' },
+  { title: 'Current Affairs', file: 'current-affairs_compressed.pdf', pages: 190, label: 'Current affairs' },
+  { title: 'My Personal Prep', file: 'my-personal-prep_compressed.pdf', pages: 160, label: 'Personal preparation' },
 ].map((note) => ({ ...note, url: `/notes/${note.file}` }));
 
 export default function MyNotes() {

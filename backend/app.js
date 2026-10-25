@@ -5,12 +5,14 @@ import OfficialSite from './models/OfficialSite.js';
 import InspirationProfile from './models/InspirationProfile.js';
 
 const app = express();
-const configuredClientOrigin = process.env.CLIENT_ORIGIN;
+const configuredClientOrigins = new Set(
+  (process.env.CLIENT_ORIGIN || '').split(',').map((origin) => origin.trim()).filter(Boolean)
+);
 const isLocalWebOrigin = (origin) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && (origin === configuredClientOrigin || isLocalWebOrigin(origin))) {
+  if (origin && (configuredClientOrigins.has(origin) || isLocalWebOrigin(origin))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');

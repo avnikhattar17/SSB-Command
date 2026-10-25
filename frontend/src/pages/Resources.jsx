@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, ExternalLink, Instagram, Play, Radio, Search, Video, X } from 'lucide-react';
+import { apiBase } from '../data/api.js';
 import { resources as bundledResources, resourceSections, resourceTypes } from '../data/resources.js';
 
 const iconFor = { book: BookOpen, website: ExternalLink, instagram: Instagram, 'youtube-channel': Radio, 'youtube-video': Video };
@@ -14,11 +15,10 @@ export default function Resources() {
   const [resources, setResources] = useState(bundledResources);
   const [resourceState, setResourceState] = useState('loading');
   const [activeVideo, setActiveVideo] = useState(null);
-  const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
   const playerRef = useRef(null);
   useEffect(() => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), 30000);
     fetch(`${apiBase}/resources`, { cache: 'no-store', signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error(`Resource API returned ${response.status}`);

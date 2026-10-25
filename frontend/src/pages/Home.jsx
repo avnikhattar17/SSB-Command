@@ -2,6 +2,7 @@
 import { Link, useOutletContext } from 'react-router-dom';
 import { ArrowRight, Award, BookOpen, Brain, ExternalLink, FileText, Flag, Instagram, MapPin, MessageCircle, Target, Users } from 'lucide-react';
 import BranchSelector from '../components/BranchSelector.jsx';
+import { apiBase } from '../data/api.js';
 import { officialSites as bundledOfficialSites } from '../data/officialSites.js';
 import { inspirationProfiles as bundledInspirationProfiles } from '../data/inspirationProfiles.js';
 
@@ -27,7 +28,6 @@ export default function Home() {
   const [officialSites, setOfficialSites] = useState(bundledOfficialSites);
   const [inspirationProfiles, setInspirationProfiles] = useState(bundledInspirationProfiles);
   useEffect(() => {
-    const apiBase = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:5000/api`).replace(/\/$/, '');
     const controller = new AbortController();
     fetch(`${apiBase}/official-sites`, { cache: 'no-store', signal: controller.signal })
       .then((response) => { if (!response.ok) throw new Error('Official sites unavailable'); return response.json(); })
