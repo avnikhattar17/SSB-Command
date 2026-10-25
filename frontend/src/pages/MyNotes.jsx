@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { ExternalLink, FileText, X } from 'lucide-react';
+import { apiBase } from '../data/api.js';
 
 const personalNotes = [
-  { title: 'SSB Complete Guide', file: 'ssb-complete-guide_compressed.pdf', pages: 153, label: 'SSB preparation' },
-  { title: 'Current Affairs', file: 'current-affairs_compressed.pdf', pages: 190, label: 'Current affairs' },
-  { title: 'My Personal Prep', file: 'my-personal-prep_compressed.pdf', pages: 160, label: 'Personal preparation' },
-].map((note) => ({ ...note, url: `/notes/${note.file}` }));
+  { title: 'SSB Complete Guide', file: 'ssb-complete-guide_compressed.pdf', id: 'ssb-complete-guide', pages: 153, label: 'SSB preparation' },
+  { title: 'Current Affairs', file: 'current-affairs_compressed.pdf', id: 'current-affairs', pages: 190, label: 'Current affairs' },
+  { title: 'My Personal Prep', file: 'my-personal-prep_compressed.pdf', id: 'my-personal-prep', pages: 160, label: 'Personal preparation' },
+].map((note) => ({ ...note, url: `${apiBase}/notes/${encodeURIComponent(note.file)}` }));
 
 export default function MyNotes() {
   const [activeNote, setActiveNote] = useState(null);
@@ -14,12 +15,12 @@ export default function MyNotes() {
     <header className="grid-bg relative overflow-hidden rounded border border-olive p-6 md:p-9 mb-8">
       <p className="text-khaki text-xs tracking-[.25em]">AVNI'S PERSONAL FIELD NOTES</p>
       <h1 className="font-display text-4xl md:text-5xl mt-2">My preparation notes</h1>
-      <p className="text-sm text-offwhite/65 mt-3 max-w-2xl">Your uploaded study documents are saved with the website and ready to read.</p>
+      <p className="text-sm text-offwhite/65 mt-3 max-w-2xl">Your study documents are stored in MongoDB Atlas and ready to read.</p>
     </header>
 
     <section aria-labelledby="personal-notes-title">
       <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
-        <div><p className="text-khaki text-xs tracking-[.2em]">SAVED WITH THIS WEBSITE</p><h2 id="personal-notes-title" className="font-display text-2xl mt-1">Your notes</h2></div>
+        <div><p className="text-khaki text-xs tracking-[.2em]">SAVED IN MONGODB ATLAS</p><h2 id="personal-notes-title" className="font-display text-2xl mt-1">Your notes</h2></div>
         <span className="text-xs text-offwhite/45">{personalNotes.length} documents</span>
       </div>
       <div className="grid md:grid-cols-3 gap-3">{personalNotes.map((note) => <article key={note.file} className="panel p-5 flex flex-col">

@@ -1,4 +1,5 @@
 import express from 'express';
+import { GridFSBucket } from 'mongodb';
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import Resource from './models/Resource.js';
 import OfficialSite from './models/OfficialSite.js';
@@ -9,6 +10,11 @@ const configuredClientOrigins = new Set(
   (process.env.CLIENT_ORIGIN || '').split(',').map((origin) => origin.trim()).filter(Boolean)
 );
 const isLocalWebOrigin = (origin) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+const noteFiles = new Map([
+  ['ssb-complete-guide_compressed.pdf', 'ssb-complete-guide'],
+  ['current-affairs_compressed.pdf', 'current-affairs'],
+  ['my-personal-prep_compressed.pdf', 'my-personal-prep'],
+]);
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -16,7 +22,8 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Range');
+    res.setHeader('Access-Control-Expose-Headers', 'Accept-Ranges, Content-Length, Content-Range, Content-Type');
   }
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
@@ -25,6 +32,53 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '100kb' }));
 
 app.get('/api/health', (_req, res) => res.json({ success: true, message: 'The SSB COMMAND API is ready.' }));
+
+app.get('/api/notes/:file', async (req, res, next) => {
+  const noteId = noteFiles.get(req.params.file);
+  if (!noteId) return res.status(404).json({ success: false, message: 'The requested PDF was not found.' });
+  if (!Resource.db.db) return res.status(503).json({ success: false, message: 'The document service is not connected to MongoDB.' });
+
+  try {
+    const bucket = new GridFSBucket(Resource.db.db);
+    const file = await bucket.find({ 'metadata.noteId': noteId }).sort({ uploadDate: -1 }).next();
+    if (!file) return res.status(404).json({ success: false, message: 'The requested PDF was not found in MongoDB.' });
+
+    let range;
+    const requestedRange = req.headers.range;
+    if (requestedRange) {
+      const match = /^bytes=(\d*)-(\d*)$/.exec(requestedRange);
+      if (!match || (!match[1] && !match[2])) {
+        res.setHeader('Content-Range', `bytes */${file.length}`);
+        return res.sendStatus(416);
+      }
+      const start = match[1] ? Number(match[1]) : Math.max(0, file.length - Number(match[2]));
+      const end = match[2] && match[1] ? Math.min(Number(match[2]), file.length - 1) : file.length - 1;
+      if (start >= file.length || end < start) {
+        res.setHeader('Content-Range', `bytes */${file.length}`);
+        return res.sendStatus(416);
+      }
+      range = { start, end };
+    }
+
+    const start = range?.start ?? 0;
+    const end = range?.end ?? file.length - 1;
+    res.status(range ? 206 : 200);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${req.params.file}"`);
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Content-Length', end - start + 1);
+    if (range) res.setHeader('Content-Range', `bytes ${start}-${end}/${file.length}`);
+
+    const download = bucket.openDownloadStream(file._id, range ? { start, end: end + 1 } : {});
+    download.on('error', (error) => {
+      if (res.headersSent) res.destroy(error);
+      else next(error);
+    });
+    download.pipe(res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 const safeEqual = (left, right) => {
   const a = Buffer.from(String(left));
