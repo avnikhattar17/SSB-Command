@@ -1,0 +1,1 @@
+{"name":"ssb-command","private":true,"scripts":{"install:all":"npm i && npm i --prefix frontend","dev":"npm run dev --prefix frontend","build":"npm run build --prefix frontend"},"devDependencies":{"concurrently":"^9.0.0"}}
