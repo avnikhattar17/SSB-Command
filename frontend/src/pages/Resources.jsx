@@ -63,7 +63,6 @@ export default function Resources() {
     </header>
     <>
     {resourceState === 'loading' && <p className="text-xs text-offwhite/45 mb-4" role="status">Connecting to MongoDB; saved links are shown below while it connects.</p>}
-    {resourceState === 'offline' && <div className="mb-5 rounded border border-khaki/40 bg-khaki/10 p-4 text-sm text-sand/80" role="status">MongoDB is not connected. Showing the bundled resource list; start the backend to load resources from the database.</div>}
     <div className="grid md:grid-cols-[1fr_210px_190px] gap-3 mb-4">
       <label className="relative"><span className="sr-only">Search resources</span><Search size={16} className="absolute left-3 top-3 text-khaki" /><input className="input pl-9" placeholder="Search titles, creators or tags" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
       <select className="input" aria-label="Filter by type" value={type} onChange={(event) => setType(event.target.value)}><option value="all">All types</option>{resourceTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
